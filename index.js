@@ -59,19 +59,30 @@ app.delete("/api/persons/:id", (request, response) => {
 });
 
 app.post("/api/persons", (request, response) => {
+  const body = request.body;
+  console.log(body.content);
 
-  const randomId = Math.floor(Math.random() * 1000000);
+  if (!body.name || !body.number) {
+    return response.status(404).json({ error: "falta el nombre o el numero" });
+  }
 
-  const person = request.body;
-  person.id = randomId;
+  const nameExists = persons.find((person) => person.name === body.name);
+  if (nameExists) {
+    return response.status(404).json({ error: "name must be unique" });
+  }
 
-  persons = persons.concat(person);
+  const newPerson = {
+    id: Math.floor(Math.random() * 100000),
+    name: body.name,
+    number: body.number,
+  };
 
-  response.json(person);
+  persons = persons.concat(newPerson);
+
+  response.json(newPerson);
 });
 
 const PORT = 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
