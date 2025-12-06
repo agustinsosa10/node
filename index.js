@@ -1,31 +1,44 @@
-require('dotenv').config()
+require("dotenv").config();
 const express = require("express");
-const morgan = require("morgan")
-const cors = require("cors")
-const Person = require('./mongo')
-
 const app = express();
-app.use(cors())
-app.use(express.json());
-app.use(express.static('dist'))
+const Person = require("./mongo");
+const morgan = require("morgan");
+const cors = require("cors");
 
-morgan.token('body', (req) => JSON.stringify(req.body))
+app.use(cors());
+app.use(express.json());
+
+morgan.token("body", (req) => JSON.stringify(req.body));
 
 app.use(
-  morgan(':method :url :status :res[content-length] - :response-time ms :body')
-)
+  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+);
 
 app.get("/api/persons", (request, response) => {
-  Person.find({})
-    .then( persons => {
-      response.json(persons)
-    })
+  Person.find({}).then((persons) => {
+    response.json(persons);
+  });
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  Person.findById( request.params.id).then( person => {
-      response.json(person)
+  const { id } = request.params;
+
+  
+  // Validar que el ID sea un ObjectId válido de MongoDB
+  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    return response.status(400).json({ error: "ID inválido" });
+  }
+
+  Person.findById(id)
+    .then((person) => {
+      if (!person) {
+        return response.status(404).json({ error: "Persona no encontrada" });
+      }
+      response.json(person);
     })
+    .catch((error) => {
+      response.status(500).json({ error: "error al buscar la persona" });
+    });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
@@ -44,16 +57,15 @@ app.post("/api/persons", (request, response) => {
 
   const person = new Person({
     name: body.name,
-    number: body.number
-  })
-  
-  person.save()
-    .then( personSaved => {
-      response.json(personSaved)
-    })
-});
+    number: body.number,
+  });
 
-const PORT = process.env.PORT 
+  person.save().then((personSaved) => {
+    response.json(personSaved);
+  });
+});
+app.use(express.static("dist"));
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});
