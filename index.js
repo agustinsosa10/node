@@ -25,9 +25,9 @@ app.get("/api/persons/:id", (request, response) => {
 
   
   // Validar que el ID sea un ObjectId válido de MongoDB
-  if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-    return response.status(400).json({ error: "ID inválido" });
-  }
+  // if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+  //   return response.status(400).json({ error: "ID inválido" });
+  // }
 
   Person.findById(id)
     .then((person) => {
@@ -37,15 +37,18 @@ app.get("/api/persons/:id", (request, response) => {
       response.json(person);
     })
     .catch((error) => {
-      response.status(500).json({ error: "error al buscar la persona" });
+      console.log(error)
+      response.status(400).send({error: "id mal formado"})
     });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
-
-  response.status(204).end();
+  
+  Person.findByIdAndDelete(request.params.id)
+    .then( result => {
+      response.status(204).end()
+    })
+    .catch(error => console.error(error))
 });
 
 app.post("/api/persons", (request, response) => {
@@ -64,6 +67,8 @@ app.post("/api/persons", (request, response) => {
     response.json(personSaved);
   });
 });
+
+
 app.use(express.static("dist"));
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
