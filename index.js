@@ -6,6 +6,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 
 app.use(cors());
+app.use(express.static("dist"));
 app.use(express.json());
 
 morgan.token("body", (req) => JSON.stringify(req.body));
@@ -20,10 +21,9 @@ app.get("/api/persons", (request, response) => {
   });
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   const { id } = request.params;
 
-  
   // Validar que el ID sea un ObjectId válido de MongoDB
   // if (!id.match(/^[0-9a-fA-F]{24}$/)) {
   //   return response.status(400).json({ error: "ID inválido" });
@@ -36,19 +36,15 @@ app.get("/api/persons/:id", (request, response) => {
       }
       response.json(person);
     })
-    .catch((error) => {
-      console.log(error)
-      response.status(400).send({error: "id mal formado"})
-    });
+    .catch((error) => next(error));
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  
   Person.findByIdAndDelete(request.params.id)
-    .then( result => {
-      response.status(204).end()
+    .then((result) => {
+      response.status(204).end();
     })
-    .catch(error => console.error(error))
+    .catch((error) => console.error(error));
 });
 
 app.post("/api/persons", (request, response) => {
@@ -68,8 +64,18 @@ app.post("/api/persons", (request, response) => {
   });
 });
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
 
-app.use(express.static("dist"));
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  }
+
+  next(error);
+};
+
+app.use(errorHandler)
+
 const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
