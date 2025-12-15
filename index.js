@@ -60,12 +60,12 @@ app.post("/api/persons", (request, response, next) => {
   });
 
   person.save().then((personSaved) => {
-    return response.json(personSaved);
+    response.json(personSaved);
   })
   .catch( error => next(error))
 });
 
-app.put("/api/persons/:id", (request, response) => {
+app.put("/api/persons/:id", (request, response, next) => {
 
   const {name, number, id} = request.body
 
@@ -74,7 +74,7 @@ app.put("/api/persons/:id", (request, response) => {
     number
   }
   
-  Person.findByIdAndUpdate(id, person, { new: true})
+  Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true})
   .then( updatedPerson => {
     response.json(updatedPerson)
   })
