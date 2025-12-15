@@ -51,7 +51,7 @@ app.post("/api/persons", (request, response, next) => {
   const body = request.body;
 
   if (!body.name || !body.number) {
-    return response.status(404).json({ error: "falta el nombre o el numero" });
+    return response.status(400).json({ error: "falta el nombre o el numero" });
   }
 
   const person = new Person({
@@ -87,7 +87,9 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === "CastError") {
     return response.status(400).send({ error: "malformatted id" });
   } else if (error.name === 'ValidationError') {
-    return response.status(400).json({error: error.message})
+    return response.status(400).json({
+      error: error.message
+    })
   }
 
   next(error);
