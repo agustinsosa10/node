@@ -60,7 +60,7 @@ app.post("/api/persons", (request, response, next) => {
   });
 
   person.save().then((personSaved) => {
-    response.json(personSaved);
+    return response.json(personSaved);
   })
   .catch( error => next(error))
 });
