@@ -1,35 +1,35 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose')
 
-mongoose.set("strictQuery", false);
+mongoose.set('strictQuery', false)
 
 const url = process.env.MONGODB_URI
 
 mongoose.connect(url)
-  .then( result => {
-    console.log("conectado a la base de datos")
+  .then( () => {
+    console.log('conectado a la base de datos')
   })
   .catch( error => {
-    console.log("error al conectar a la base de datos", error.message)
+    console.log('error al conectar a la base de datos', error.message)
   })
 
 const personSchema = new mongoose.Schema({
   name:{
     type: String,
     minlength: 3,
-    required: true 
+    required: true
   },
   number:{
     type: String,
     minlength: 8,
     validate: {
       validator: function(v) {
-        return /^\d{2,3}-\d+$/.test(v);
+        return /^\d{2,3}-\d+$/.test(v)
       },
       message: props => `${props.value} no es un numero valido`
     },
     required: true
-  } 
-});
+  }
+})
 
 personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
@@ -39,4 +39,4 @@ personSchema.set('toJSON', {
   }
 })
 
-module.exports = mongoose.model("Person", personSchema);
+module.exports = mongoose.model('Person', personSchema)
